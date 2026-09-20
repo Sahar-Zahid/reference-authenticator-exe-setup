@@ -5,6 +5,9 @@ import threading
 import webbrowser
 from pathlib import Path
 
+CONFIG_DIR = Path(os.getenv("APPDATA", Path.home())) / "ReferenceAuthenticator"
+CONFIG_FILE = CONFIG_DIR / "config.json"
+
 from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.utils import secure_filename
 
@@ -31,6 +34,50 @@ from backend import (
 app = Flask(__name__, static_folder=None)
 ALLOWED_EXTENSIONS = {"pdf"}
 
+@app.get("/api/config")
+def get_config():
+    if CONFIG_FILE.exists():
+        try:
+            import json
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                config = json.load(f)
+
+            return jsonify({
+                "configured": bool(
+                    config.get("GROQ_API_KEY") or
+                    config.get("GEMINI_API_KEY")
+                )
+            })
+        except Exception:
+            pass
+
+    return jsonify({"configured": False})
+
+
+@app.post("/api/config")
+def save_config_api():
+    data = request.get_json(silent=True) or {}
+
+    config = {
+        "GROQ_API_KEY": (data.get("GROQ_API_KEY") or "").strip(),
+        "GEMINI_API_KEY": (data.get("GEMINI_API_KEY") or "").strip(),
+        "OPENAI_API_KEY": (data.get("OPENAI_API_KEY") or "").strip(),
+        "CONTACT_EMAIL": (data.get("CONTACT_EMAIL") or "").strip(),
+    }
+
+    if not config["GROQ_API_KEY"] and not config["GEMINI_API_KEY"]:
+        return jsonify(
+            message="Please enter at least a Groq or Gemini API key."
+        ), 400
+
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
+    import json
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=4)
+
+    return jsonify({"success": True})
+    
 def run_async(coro):
     return asyncio.run(coro)
 
