@@ -1,4 +1,4 @@
-name: Build Windows EXE
+name: Build Windows Installer
 
 on:
   workflow_dispatch:
@@ -26,6 +26,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: backend
+        shell: bash
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -35,7 +36,7 @@ jobs:
         working-directory: backend
         shell: bash
         run: |
-          pyinstaller --onedir --console --name ReferenceAuthenticator \
+          pyinstaller --onedir --windowed --name ReferenceAuthenticator \
             --add-data "../frontend;frontend" \
             --collect-all crewai \
             --collect-all litellm \
@@ -52,8 +53,51 @@ jobs:
             --hidden-import=tiktoken_ext.openai_public \
             server.py
 
-      - name: Upload Windows application
+      - name: Install Inno Setup
+        shell: powershell
+        run: |
+          choco install innosetup -y --no-progress
+
+      - name: Create installer script
+        shell: powershell
+        run: |
+          @"
+          [Setup]
+          AppName=Reference Authenticator
+          AppVersion=1.0
+          DefaultDirName={autopf}\Reference Authenticator
+          DefaultGroupName=Reference Authenticator
+          OutputDir=${{ github.workspace }}\installer
+          OutputBaseFilename=ReferenceAuthenticator-Setup
+          Compression=lzma
+          SolidCompression=yes
+          ArchitecturesInstallIn64BitMode=x64compatible
+
+          [Files]
+          Source="${{ github.workspace }}\backend\dist\ReferenceAuthenticator\*"
+          DestDir="{app}"
+          Flags=recursesubdirs createallsubdirs
+
+          [Icons]
+          Name="{autoprograms}\Reference Authenticator"
+          Filename="{app}\ReferenceAuthenticator.exe"
+
+          Name="{autodesktop}\Reference Authenticator"
+          Filename="{app}\ReferenceAuthenticator.exe"
+
+          [UninstallDelete]
+          Type: filesandordirs
+          Name="{app}"
+          "@ | Out-File -FilePath installer.iss -Encoding ASCII
+
+      - name: Build installer
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path installer
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+
+      - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: ReferenceAuthenticator-windows
-          path: backend/dist/ReferenceAuthenticator
+          name: ReferenceAuthenticator-Installer
+          path: installer/ReferenceAuthenticator-Setup.exe
