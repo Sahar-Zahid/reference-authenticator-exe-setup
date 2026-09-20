@@ -1,12 +1,278 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Academic Reference Verification System</title><link rel="stylesheet" href="style.css"></head>
-<body><main class="container"><header class="header"><h1>📚 Academic Reference Verification System</h1>
-<p>Crossref • OpenAlex • DBLP • Semantic Scholar • PubMed • AI Verification</p></header>
-<section class="card"><div class="tabs"><button class="tab active" data-mode="single">Single Reference</button><button class="tab" data-mode="list">Reference List</button><button class="tab" data-mode="pdf">PDF</button></div>
-<div id="single-panel" class="panel"><label for="single-input">Academic Reference</label><textarea id="single-input" rows="6" placeholder="Paste one academic reference here..."></textarea><button id="single-button" class="verify-btn">🔍 Verify Reference</button></div>
-<div id="list-panel" class="panel hidden"><label for="list-input">Reference List</label><textarea id="list-input" rows="12" placeholder="Paste your reference list here..."></textarea><button id="list-button" class="verify-btn">🔍 Verify All References</button></div>
-<div id="pdf-panel" class="panel hidden"><label for="pdf-input">Research Paper PDF</label><div id="drop-zone" class="drop-zone"><div class="upload-icon">📄</div><p><strong>Choose a PDF</strong> or drag it here</p><span id="file-name">No file selected</span><input id="pdf-input" type="file" accept=".pdf,application/pdf"></div><button id="pdf-button" class="verify-btn">📄 Extract & Verify References</button></div></section>
-<section id="loading" class="loading hidden"><div class="spinner"></div><span>Verifying references... This may take a little while.</span></section>
-<section id="message" class="message hidden"></section>
-<section id="results-section" class="results hidden"><div class="results-header"><h2>Verification Results</h2><a id="download-link" class="download-btn hidden" href="#" download>⬇ Download Excel</a></div><div id="results"></div></section></main><script src="script.js"></script></body></html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Reference Verification System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<main class="container">
+
+    <!-- =====================================================
+         FIRST-LAUNCH CONFIGURATION SCREEN
+         ===================================================== -->
+
+    <section id="setup-screen" class="setup-screen hidden">
+
+        <div class="setup-card">
+
+            <div class="setup-icon">🔐</div>
+
+            <h1>Welcome to Reference Authenticator</h1>
+
+            <p class="setup-intro">
+                Before using the application, enter at least one
+                AI provider API key.
+            </p>
+
+            <p class="setup-note">
+                Your keys are saved locally on this computer and
+                are not included in the application or uploaded
+                anywhere by this setup screen.
+            </p>
+
+            <div class="setup-field">
+                <label for="groq-key">Groq API Key</label>
+                <input
+                    type="password"
+                    id="groq-key"
+                    placeholder="Enter Groq API key"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="setup-field">
+                <label for="gemini-key">Gemini API Key</label>
+                <input
+                    type="password"
+                    id="gemini-key"
+                    placeholder="Enter Gemini API key"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="setup-field">
+                <label for="openai-key">
+                    OpenAI API Key
+                    <span class="optional">(optional)</span>
+                </label>
+
+                <input
+                    type="password"
+                    id="openai-key"
+                    placeholder="Enter OpenAI API key if needed"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="setup-field">
+                <label for="contact-email">
+                    Contact Email
+                    <span class="optional">(optional)</span>
+                </label>
+
+                <input
+                    type="email"
+                    id="contact-email"
+                    placeholder="your-email@example.com"
+                    autocomplete="off"
+                >
+            </div>
+
+            <button id="save-config-button" class="setup-btn">
+                Save & Continue
+            </button>
+
+            <p id="setup-message" class="setup-message hidden"></p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MAIN APPLICATION
+         ===================================================== -->
+
+    <section id="app-screen" class="hidden">
+
+        <header class="header">
+            <h1>📚 Academic Reference Verification System</h1>
+
+            <p>
+                Crossref • OpenAlex • DBLP • Semantic Scholar •
+                PubMed • AI Verification
+            </p>
+        </header>
+
+
+        <section class="card">
+
+            <div class="tabs">
+
+                <button
+                    class="tab active"
+                    data-mode="single">
+                    Single Reference
+                </button>
+
+                <button
+                    class="tab"
+                    data-mode="list">
+                    Reference List
+                </button>
+
+                <button
+                    class="tab"
+                    data-mode="pdf">
+                    PDF
+                </button>
+
+            </div>
+
+
+            <!-- SINGLE REFERENCE -->
+
+            <div id="single-panel" class="panel">
+
+                <label for="single-input">
+                    Academic Reference
+                </label>
+
+                <textarea
+                    id="single-input"
+                    rows="6"
+                    placeholder="Paste one academic reference here..."
+                ></textarea>
+
+                <button
+                    id="single-button"
+                    class="verify-btn">
+                    🔍 Verify Reference
+                </button>
+
+            </div>
+
+
+            <!-- REFERENCE LIST -->
+
+            <div id="list-panel" class="panel hidden">
+
+                <label for="list-input">
+                    Reference List
+                </label>
+
+                <textarea
+                    id="list-input"
+                    rows="12"
+                    placeholder="Paste your reference list here..."
+                ></textarea>
+
+                <button
+                    id="list-button"
+                    class="verify-btn">
+                    🔍 Verify All References
+                </button>
+
+            </div>
+
+
+            <!-- PDF -->
+
+            <div id="pdf-panel" class="panel hidden">
+
+                <label for="pdf-input">
+                    Research Paper PDF
+                </label>
+
+                <div id="drop-zone" class="drop-zone">
+
+                    <div class="upload-icon">📄</div>
+
+                    <p>
+                        <strong>Choose a PDF</strong>
+                        or drag it here
+                    </p>
+
+                    <span id="file-name">
+                        No file selected
+                    </span>
+
+                    <input
+                        id="pdf-input"
+                        type="file"
+                        accept=".pdf,application/pdf"
+                    >
+
+                </div>
+
+                <button
+                    id="pdf-button"
+                    class="verify-btn">
+                    📄 Extract & Verify References
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- LOADING -->
+
+        <section
+            id="loading"
+            class="loading hidden">
+
+            <div class="spinner"></div>
+
+            <span>
+                Verifying references...
+                This may take a little while.
+            </span>
+
+        </section>
+
+
+        <!-- MESSAGE -->
+
+        <section
+            id="message"
+            class="message hidden">
+        </section>
+
+
+        <!-- RESULTS -->
+
+        <section
+            id="results-section"
+            class="results hidden">
+
+            <div class="results-header">
+
+                <h2>Verification Results</h2>
+
+                <a
+                    id="download-link"
+                    class="download-btn hidden"
+                    href="#"
+                    download>
+                    ⬇ Download Excel
+                </a>
+
+            </div>
+
+            <div id="results"></div>
+
+        </section>
+
+    </section>
+
+</main>
+
+<script src="script.js"></script>
+
+</body>
+</html>
