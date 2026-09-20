@@ -23,13 +23,50 @@ else:
 EXPORT_DIR = BASE_DIR / "exports"
 EXPORT_DIR.mkdir(exist_ok=True)
 
-from backend import (
-    run_verification_system,
-    run_batch_verification,
-    extract_references_from_text,
-    extract_references_from_pdf,
-    export_results_to_excel,
-)
+_backend = None
+
+
+def get_backend():
+    global _backend
+
+    if _backend is None:
+        from backend import (
+            run_verification_system as _run_verification_system,
+            run_batch_verification as _run_batch_verification,
+            extract_references_from_text as _extract_references_from_text,
+            extract_references_from_pdf as _extract_references_from_pdf,
+            export_results_to_excel as _export_results_to_excel,
+        )
+
+        _backend = {
+            "run_verification_system": _run_verification_system,
+            "run_batch_verification": _run_batch_verification,
+            "extract_references_from_text": _extract_references_from_text,
+            "extract_references_from_pdf": _extract_references_from_pdf,
+            "export_results_to_excel": _export_results_to_excel,
+        }
+
+    return _backend
+
+
+def run_verification_system(*args, **kwargs):
+    return get_backend()["run_verification_system"](*args, **kwargs)
+
+
+def run_batch_verification(*args, **kwargs):
+    return get_backend()["run_batch_verification"](*args, **kwargs)
+
+
+def extract_references_from_text(*args, **kwargs):
+    return get_backend()["extract_references_from_text"](*args, **kwargs)
+
+
+def extract_references_from_pdf(*args, **kwargs):
+    return get_backend()["extract_references_from_pdf"](*args, **kwargs)
+
+
+def export_results_to_excel(*args, **kwargs):
+    return get_backend()["export_results_to_excel"](*args, **kwargs)
 
 app = Flask(__name__, static_folder=None)
 ALLOWED_EXTENSIONS = {"pdf"}
