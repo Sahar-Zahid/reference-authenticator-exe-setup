@@ -73,20 +73,20 @@ jobs:
           ArchitecturesInstallIn64BitMode=x64compatible
 
           [Files]
-          Source="${{ github.workspace }}\backend\dist\ReferenceAuthenticator\*"
-          DestDir="{app}"
-          Flags=recursesubdirs createallsubdirs
+          Source: "${{ github.workspace }}\backend\dist\ReferenceAuthenticator\*"
+          DestDir: "{app}"
+          Flags: recursesubdirs createallsubdirs
 
           [Icons]
-          Name="{group}\Reference Authenticator"
-          Filename="{app}\ReferenceAuthenticator.exe"
+          Name: "{group}\Reference Authenticator"
+          Filename: "{app}\ReferenceAuthenticator.exe"
 
-          Name="{autodesktop}\Reference Authenticator"
-          Filename="{app}\ReferenceAuthenticator.exe"
+          Name: "{autodesktop}\Reference Authenticator"
+          Filename: "{app}\ReferenceAuthenticator.exe"
 
           [UninstallDelete]
           Type: filesandordirs
-          Name="{app}"
+          Name: "{app}"
           "@ | Out-File -FilePath installer.iss -Encoding ASCII
 
       - name: Build installer
