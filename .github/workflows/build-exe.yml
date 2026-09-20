@@ -26,7 +26,6 @@ jobs:
 
       - name: Install dependencies
         working-directory: backend
-        shell: bash
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -79,7 +78,7 @@ jobs:
           Flags=recursesubdirs createallsubdirs
 
           [Icons]
-          Name="{autoprograms}\Reference Authenticator"
+          Name="{group}\Reference Authenticator"
           Filename="{app}\ReferenceAuthenticator.exe"
 
           Name="{autodesktop}\Reference Authenticator"
